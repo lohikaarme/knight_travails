@@ -1,3 +1,4 @@
+# Board class for creating a chess board
 class Board
   attr_accessor :board
   def initialize
@@ -25,6 +26,7 @@ class Board
   end
 end
 
+# Piece class for inheriting common piece characteristics
 class Piece
   attr_accessor :color
 
@@ -37,6 +39,9 @@ class Piece
   end
 end
 
+# Knight class for defining specific functionality for the knight piece
+# This class inherits from the Piece class and overrides the legal_move? and legal_moves methods
+# to implement the unique movement rules of the knight.
 class Knight < Piece
   attr_accessor :legal_move
 
@@ -44,22 +49,25 @@ class Knight < Piece
   # @param value [Array] starting position
   # @param value [Array] ending position
   # @return [Boolean, nil] True if legal, False if illegal, nil if improper params
-  # eg. [0, 0] -> [2, 1], 8 combinationsŒ
   def legal_move?(bgn_move, end_move)
     return nil unless bgn_move.is_a?(Array) && bgn_move.length == 2
     return nil unless end_move.is_a?(Array) && end_move.length == 2
     return false if end_move[0] < 0 || end_move[1] < 0
 
     legal = true
+    # x and y axis determine the absolute cartesian movement of the piece
+    # between ending and beginning moves. Giving total movement along each axis.
     x_axis = (end_move[0] - bgn_move[0]).abs
     y_axis = (end_move[1] - bgn_move[1]).abs
 
+    # Confirms if piece moved the legal amount of spaces
+    # For a Knight, that is 1 position in one axis, and 2 positions on the other axis
     legal = false unless x_axis == 1 && y_axis == 2 || x_axis == 2 && y_axis == 1
     legal
   end
 
-  # Method to list all legal moves
-  # @param value [Array] starting position
+  # Method to list all legal moves for the knight from a given starting position
+  # @param value bgn_move [Array] starting position
   # @return [Array, nil] Array of legal moves, or nil in improper param
   def legal_moves(bgn_move)
     return nil unless bgn_move.is_a?(Array) && bgn_move.length == 2
@@ -85,54 +93,49 @@ class Knight < Piece
 
     return nil if moves.empty?
 
-    moves
+    moves.sort
   end
-
 end
 
 # class to build nodes for MoveTree that can have n branches
 class MoveNode
   attr_accessor :branches
 
-  def initialize(piece, branches = [])
+  def initialize(piece, position, branches = [])
     @piece = piece
+    @position = position
     @branches = branches
   end
 end
 
-# class to build tree to examine all possible legal moves for a piece
+# Tree class to build tree to examine all possible legal moves for a piece
+# Method to build tree
 class MoveTree
-  attr_accessor :root, :moves
+  attr_accessor :root, :position, :all_moves
 
-def initialize(piece, bgn_move)
-  # @moves = []
-  # (0..7).each do |i|
-  #   (0..7).each do |j|
-  #       @moves << [i, j]
-  #   end
-  # end
-  @moves = piece.legal_moves(bgn_move)
-  @root = build_tree(piece, bgn_move)
-end
+  def initialize(piece, position)
+    @position = position
+    @all_moves = (0..7).to_a.product((0..7).to_a)
+    @root = build_tree(piece, position)
+  end
 
-  def build_tree(piece, bgn_move)
+  # Method to build binary search tree from given piece and position
+  def build_tree(piece, position)
     return nil if piece.nil?
 
-    root = MoveNode.new(piece, [])
-    moves.each do |end_move|
-      # add level order logic, want to build out breadth first.
-      # will need to add all legal moves prior to moving on to next level
+    legal_moves = piece.legal_moves(position)
 
-      # cycle through all combination, for the true values, create a new branch
-      next unless piece.legal_move?(bgn_move, end_move)
+    moves = legal_moves.select { |move| @all_moves.include?(move)}
+    @all_moves = @all_moves.delete_if { |move| moves.include?(move)}
 
-      # search through tree for any instance of the same position
+    root = MoveNode.new(piece, position)
 
-      # add new branch
-      root.branches << build_tree(piece, end_move)
+    moves.each do |move|
+      node = build_tree(piece, move)
+      root.branches << node unless node.nil?
     end
 
-    # build tree with n children as this will change depending on if the move is legal
+    root
   end
 end
 
@@ -140,6 +143,7 @@ k1 = Knight.new('black')
 p k1.legal_move?([0,0],[1,2])
 p k1.legal_move?([0,0],[1,3])
 p k1.legal_moves([0,0])
-p knight_travalis = MoveTree.new(k1, [0,0])
-p
-1 + 1
+p a = k1.legal_moves([3,3])
+p 1+1
+p knight_travalis = MoveTree.new(k1, [3,3])
+p 1 + 1
