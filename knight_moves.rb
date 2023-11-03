@@ -99,7 +99,7 @@ end
 
 # class to build nodes for MoveTree that can have n branches
 class MoveNode
-  attr_accessor :branches
+  attr_accessor :branches, :position
 
   def initialize(piece, position, branches = [])
     @piece = piece
@@ -119,25 +119,37 @@ class MoveTree
     @root = build_tree(piece, position)
   end
 
-  # Method to build binary search tree from given piece and position
-  def build_tree(piece, position)
+  # Method to build binary search tree from given piece and position using breadth first approach
+  def build_tree(piece, position, created_nodes = [])
     return nil if piece.nil?
+    return nil if @all_moves.nil?
 
     legal_moves = piece.legal_moves(position)
+
+    return nil if legal_moves.nil?
 
     moves = legal_moves.select { |move| @all_moves.include?(move)}
     @all_moves = @all_moves.delete_if { |move| moves.include?(move)}
 
     root = MoveNode.new(piece, position)
 
-    moves.each do |move|
-      node = build_tree(piece, move)
-      root.branches << node unless node.nil?
+    # For each move a node is created and then added to the root branches, ensuring all moves of this level will be
+    # executed first prior to moving on to another level
+    created_nodes = moves.map do |move|
+      node = MoveNode.new(piece, move)
+      root.branches << node
+      node
     end
 
+    # For each of the nodes a new tree is recursively created
+    created_nodes.each do |node|
+      build_tree(piece, node.position, created_nodes)
+    end
     root
   end
 end
+
+# consider how the tree is building out atm, probably want to do level order construction, not depth
 
 k1 = Knight.new('black')
 p k1.legal_move?([0,0],[1,2])
