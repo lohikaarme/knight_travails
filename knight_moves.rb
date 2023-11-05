@@ -147,15 +147,41 @@ class MoveTree
     end
     root
   end
+
+  def find_path (position, path = [], node = root, start: true)
+    # return nil if node.nil?
+    # return node if position == node.position
+
+    # node.branches.each do |branch|
+    #   find_path(position, branch)
+    # end
+    return nil if node.nil?
+
+    if position == node.position
+      path << node.position
+      return path
+    end
+
+    node.branches.each do |branch|
+      result = find_path(position, path, branch, start: false)
+      if result
+        path << node.position
+        return path
+      end
+    end
+    p nodes if start && !path.empty?
+    nil
+  end
 end
 
 # consider how the tree is building out atm, probably want to do level order construction, not depth
 
 k1 = Knight.new('black')
-p k1.legal_move?([0,0],[1,2])
-p k1.legal_move?([0,0],[1,3])
-p k1.legal_moves([0,0])
-p a = k1.legal_moves([3,3])
-p 1+1
-p knight_travalis = MoveTree.new(k1, [3,3])
+# p k1.legal_move?([0,0],[1,2])
+# p k1.legal_move?([0,0],[1,3])
+# p k1.legal_moves([0,0])
+# p a = k1.legal_moves([3,3])
+# p 1+1
+knight_travalis = MoveTree.new(k1, [3,3])
+p knight_travalis.find_path([1,2])
 p 1 + 1
