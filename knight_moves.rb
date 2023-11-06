@@ -170,16 +170,26 @@ class MoveTree
     p nodes if start && !path.empty?
     nil
   end
+
+  def self.knight_moves(bgn_position, end_position)
+    piece = Knight.new('black')
+    knight_travalis = MoveTree.new(piece, bgn_position)
+    path = knight_travalis.find_path(end_position)
+    path = path.reverse
+
+    puts "You made it in #{path.count} moves! Heres your path:"
+    path.each do |position|
+      puts "#{position}"
+    end
+  end
 end
 
-# consider how the tree is building out atm, probably want to do level order construction, not depth
-
-k1 = Knight.new('black')
 # p k1.legal_move?([0,0],[1,2])
 # p k1.legal_move?([0,0],[1,3])
 # p k1.legal_moves([0,0])
 # p a = k1.legal_moves([3,3])
 # p 1+1
-knight_travalis = MoveTree.new(k1, [3,3])
-p knight_travalis.find_path([1,6])
+# knight_travalis = MoveTree.new(k1, [3,3])
+# p knight_travalis.find_path([1,6])
+MoveTree.knight_moves([1,2],[3,6])
 p 1 + 1
