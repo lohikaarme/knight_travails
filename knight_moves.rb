@@ -121,11 +121,9 @@ class MoveTree
 
   # Method to build binary search tree from given piece and position using breadth first approach
   def build_tree(piece, position, created_nodes = [])
-    return nil if piece.nil?
-    return nil if @all_moves.nil?
+    return nil unless piece && @all_moves
 
     legal_moves = piece.legal_moves(position)
-
     return nil if legal_moves.nil?
 
     moves = legal_moves.select { |move| @all_moves.include?(move)}
@@ -133,28 +131,28 @@ class MoveTree
 
     root = MoveNode.new(piece, position)
 
-    # For each move a node is created and then added to the root branches, ensuring all moves of this level will be
-    # executed first prior to moving on to another level
-    created_nodes = moves.map do |move|
+    moves.each do |move|
       node = MoveNode.new(piece, move)
       root.branches << node
-      node
+      created_nodes << node
     end
 
-    # For each of the nodes a new tree is recursively created
-    created_nodes.each do |node|
-      build_tree(piece, node.position, created_nodes)
+    until created_nodes.empty?
+      node = created_nodes.shift
+      legal_moves = piece.legal_moves(node.position)
+      moves = legal_moves.select { |move| @all_moves.include?(move)}
+      @all_moves = @all_moves.delete_if { |move| moves.include?(move)}
+
+      moves.each do |move|
+        child_node = MoveNode.new(piece, move)
+        node.branches << child_node
+        created_nodes << child_node
+      end
     end
     root
   end
 
   def find_path (position, path = [], node = root, start: true)
-    # return nil if node.nil?
-    # return node if position == node.position
-
-    # node.branches.each do |branch|
-    #   find_path(position, branch)
-    # end
     return nil if node.nil?
 
     if position == node.position
@@ -183,5 +181,5 @@ k1 = Knight.new('black')
 # p a = k1.legal_moves([3,3])
 # p 1+1
 knight_travalis = MoveTree.new(k1, [3,3])
-p knight_travalis.find_path([1,2])
+p knight_travalis.find_path([1,6])
 p 1 + 1
